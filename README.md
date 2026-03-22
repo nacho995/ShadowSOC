@@ -99,7 +99,8 @@
 
 ```
 ShadowSOC/
-├── docker-compose.yml              # RabbitMQ + Kafka + Zookeeper
+├── docker-compose.yml              # Full stack: all services + infrastructure
+├── .env.example                    # Environment variables template
 ├── ShadowSOC.sln                   # .NET solution file
 │
 ├── ShadowSOC.Simulator/            # Event generator
@@ -177,71 +178,54 @@ Events that do not match any rule are silently dropped. This keeps the dashboard
 
 ## Quick Start
 
-### Prerequisites
+### Option A: Docker Compose (recommended)
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Node.js](https://nodejs.org/) (v22+ recommended)
-- [Angular CLI](https://angular.dev/) (`npm install -g @angular/cli`)
-- (Optional) Free [AbuseIPDB API key](https://www.abuseipdb.com/account/api) for real threat data
+Everything runs with a single command. No .NET, Node.js, or Angular CLI needed.
 
-### 1. Clone the repository
+**Prerequisites:** [Docker](https://docs.docker.com/get-docker/) and Docker Compose only.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ShadowSOC.git
+git clone https://github.com/nacho995/ShadowSOC.git
 cd ShadowSOC
+
+# (Optional) Add your AbuseIPDB API key for real threat data
+cp .env.example .env
+# Edit .env and add your key
+
+# Launch everything
+docker-compose up --build
 ```
 
-### 2. Start the infrastructure
+Open **http://localhost:4200** and watch the attacks appear in real time.
+
+### Option B: Manual setup (for development)
+
+**Prerequisites:**
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose (for RabbitMQ + Kafka)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Node.js](https://nodejs.org/) (v22+)
+- [Angular CLI](https://angular.dev/) (`npm install -g @angular/cli`)
+- (Optional) Free [AbuseIPDB API key](https://www.abuseipdb.com/account/api)
 
 ```bash
-docker-compose up -d
-```
+git clone https://github.com/nacho995/ShadowSOC.git
+cd ShadowSOC
 
-This starts RabbitMQ (ports 5672 / 15672), Kafka (port 9092), and Zookeeper.
+# Start infrastructure only
+docker-compose up -d rabbitmq zookeeper kafka
 
-### 3. Configure the AbuseIPDB API key
+# (Optional) Add AbuseIPDB key in ShadowSOC.Simulator/appsettings.json
 
-Edit `ShadowSOC.Simulator/appsettings.json` and add your key:
-
-```json
-{
-  "AbuseIPDB": {
-    "ApiKey": "YOUR_API_KEY_HERE"
-  }
-}
-```
-
-> If you skip this step, the Simulator will use fallback IPs automatically.
-
-### 4. Start the backend services
-
-Open three separate terminals:
-
-```bash
-# Terminal 1 - Simulator (generates events)
+# Start backend services (each in a separate terminal)
+dotnet run --project ShadowSOC.Api
+dotnet run --project ShadowSOC.Consumer
 dotnet run --project ShadowSOC.Simulator
 
-# Terminal 2 - Consumer (detection + geolocation)
-dotnet run --project ShadowSOC.Consumer
-
-# Terminal 3 - API (SignalR hub)
-dotnet run --project ShadowSOC.Api
+# Start frontend
+cd ShadowSOC.Web && npm install && ng serve
 ```
 
-### 5. Start the frontend
-
-```bash
-cd ShadowSOC.Web
-npm install
-ng serve
-```
-
-### 6. Open the dashboard
-
-Navigate to **http://localhost:4200** in your browser. Alerts should start appearing on the map within a few seconds.
-
-You can also access the RabbitMQ management UI at **http://localhost:15672** (guest / guest).
+Open **http://localhost:4200**. RabbitMQ management UI available at **http://localhost:15672** (guest / guest).
 
 ---
 
