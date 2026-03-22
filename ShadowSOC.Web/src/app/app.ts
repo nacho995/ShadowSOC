@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { AttackMap } from './attack-map/attack-map';
 import { Signalr } from './signalr';
 import { DatePipe } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -9,8 +10,20 @@ import { DatePipe } from '@angular/common';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
+export class App implements OnInit, OnDestroy {
   signalrService = inject(Signalr);
+  private cdr = inject(ChangeDetectorRef);
+  private subscription!: Subscription;
+
+  ngOnInit() {
+    this.subscription = this.signalrService.alerts$.subscribe(() => {
+      this.cdr.detectChanges();
+    });
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
 
   get totalAttacks(): number {
     return this.signalrService.allAlerts.length;
@@ -62,23 +75,5 @@ export class App {
 
   get maxSeverityCount(): number {
     return Math.max(this.criticalCount, this.highCount, this.mediumCount, this.lowCount, 1);
-  }
-
-  severityColor(severity: string): string {
-    switch (severity) {
-      case 'Critical': return 'text-red-500';
-      case 'High': return 'text-orange-500';
-      case 'Medium': return 'text-yellow-500';
-      default: return 'text-green-400';
-    }
-  }
-
-  severityBgColor(severity: string): string {
-    switch (severity) {
-      case 'Critical': return 'bg-red-500';
-      case 'High': return 'bg-orange-500';
-      case 'Medium': return 'bg-yellow-500';
-      default: return 'bg-green-400';
-    }
   }
 }
