@@ -1,0 +1,26 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+
+# IDE
+.idea/
+.vs/
+*.swp
+
+# Node
+node_modules/
+dist/
+.angular/
+
+# Secrets
+appsettings.Development.json
+**/appsettings.*.json
+
+# OS
+.DS_Store
+Thumbs.db

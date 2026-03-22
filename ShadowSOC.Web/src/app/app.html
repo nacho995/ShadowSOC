@@ -1,0 +1,123 @@
+<div class="flex flex-col h-screen bg-black text-gray-300 overflow-hidden font-mono">
+  <!-- TOP BAR -->
+  <div class="flex items-center justify-between px-6 py-3 bg-black border-b border-red-900/50 shrink-0">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold tracking-[0.3em] text-red-500 uppercase">ShadowSOC</h1>
+      <span class="text-[10px] tracking-widest text-gray-600 uppercase hidden sm:inline">Run Rabbit Run</span>
+    </div>
+    <div class="flex items-center gap-6 text-sm tracking-wide">
+      <div class="flex items-center gap-2">
+        <span class="live-dot"></span>
+        <span class="text-red-400 uppercase text-xs">Live</span>
+      </div>
+      <div class="text-gray-400">
+        Attacks: <span class="text-white font-bold">{{ totalAttacks }}</span>
+      </div>
+      <div class="text-gray-400">
+        Critical: <span class="text-red-500 font-bold">{{ criticalCount }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex flex-1 min-h-0">
+    <!-- MAP AREA -->
+    <div class="w-[70%] border-r border-red-900/30 relative">
+      <app-attack-map class="block absolute inset-0"></app-attack-map>
+    </div>
+
+    <!-- TERMINAL FEED -->
+    <div class="w-[30%] flex flex-col bg-gray-950">
+      <div class="px-4 py-2 border-b border-red-900/30 flex items-center gap-2 shrink-0">
+        <span class="text-red-500 text-xs">&gt;</span>
+        <span class="text-gray-300 text-xs tracking-[0.2em] uppercase">Terminal Feed</span>
+      </div>
+      <div class="flex-1 overflow-y-auto terminal-scroll p-3 space-y-1">
+        @if (signalrService.allAlerts.length === 0) {
+          <div class="text-gray-600 text-xs text-center mt-8">
+            Awaiting incoming alerts...
+          </div>
+        }
+        @for (alert of signalrService.allAlerts; track $index) {
+          <div class="text-[11px] leading-relaxed border-b border-gray-800/50 pb-1 mb-1">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-600">[{{ alert.Timestamp | date:'HH:mm:ss' }}]</span>
+              <span class="font-bold uppercase text-[10px] tracking-wider" [style.color]="alert.Severity === 'Critical' ? '#ef4444' : alert.Severity === 'High' ? '#f97316' : alert.Severity === 'Medium' ? '#eab308' : '#4ade80'">{{ alert.Severity }}</span>
+            </div>
+            <div class="text-gray-300 pl-2">{{ alert.TypeOfAttack }}</div>
+            <div class="text-gray-500 pl-2">{{ alert.OriginIp }} ({{ alert.Country }})</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM STATS BAR -->
+  <div class="flex bg-gray-950 border-t border-red-900/50 shrink-0">
+    <!-- TOP COUNTRIES -->
+    <div class="w-1/3 p-4 border-r border-red-900/30">
+      <h3 class="text-[10px] tracking-[0.25em] text-red-500 uppercase mb-3">Top Countries</h3>
+      @if (topCountries.length === 0) {
+        <div class="text-gray-600 text-xs">No data</div>
+      }
+      @for (item of topCountries; track item.country) {
+        <div class="flex justify-between text-xs mb-1">
+          <span class="text-gray-400">{{ item.country }}</span>
+          <span class="text-white">{{ item.count }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- ATTACK TYPES -->
+    <div class="w-1/3 p-4 border-r border-red-900/30">
+      <h3 class="text-[10px] tracking-[0.25em] text-red-500 uppercase mb-3">Attack Types</h3>
+      @if (attacksByType.length === 0) {
+        <div class="text-gray-600 text-xs">No data</div>
+      }
+      @for (item of attacksByType; track item.type) {
+        <div class="flex items-center gap-2 text-xs mb-1">
+          <span class="text-gray-400 w-28 truncate">{{ item.type }}</span>
+          <div class="flex-1 bg-gray-800 h-2 rounded-sm overflow-hidden">
+            <div class="h-full bg-red-600 rounded-sm" [style.width.%]="(item.count / maxTypeCount) * 100"></div>
+          </div>
+          <span class="text-white w-6 text-right">{{ item.count }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- SEVERITY BREAKDOWN -->
+    <div class="w-1/3 p-4">
+      <h3 class="text-[10px] tracking-[0.25em] text-red-500 uppercase mb-3">Severity</h3>
+      <div class="space-y-1">
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-red-500 w-16">CRIT</span>
+          <div class="flex-1 bg-gray-800 h-2 rounded-sm overflow-hidden">
+            <div class="h-full bg-red-500 rounded-sm" [style.width.%]="(criticalCount / maxSeverityCount) * 100"></div>
+          </div>
+          <span class="text-white w-6 text-right">{{ criticalCount }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-orange-500 w-16">HIGH</span>
+          <div class="flex-1 bg-gray-800 h-2 rounded-sm overflow-hidden">
+            <div class="h-full bg-orange-500 rounded-sm" [style.width.%]="(highCount / maxSeverityCount) * 100"></div>
+          </div>
+          <span class="text-white w-6 text-right">{{ highCount }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-yellow-500 w-16">MED</span>
+          <div class="flex-1 bg-gray-800 h-2 rounded-sm overflow-hidden">
+            <div class="h-full bg-yellow-500 rounded-sm" [style.width.%]="(mediumCount / maxSeverityCount) * 100"></div>
+          </div>
+          <span class="text-white w-6 text-right">{{ mediumCount }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-green-400 w-16">LOW</span>
+          <div class="flex-1 bg-gray-800 h-2 rounded-sm overflow-hidden">
+            <div class="h-full bg-green-400 rounded-sm" [style.width.%]="(lowCount / maxSeverityCount) * 100"></div>
+          </div>
+          <span class="text-white w-6 text-right">{{ lowCount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

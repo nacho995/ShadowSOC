@@ -1,0 +1,105 @@
+<div class="min-h-screen bg-black flex items-center justify-center p-4 font-mono relative overflow-hidden">
+
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(220,20,20,0.15)_0%,_transparent_70%)]"></div>
+
+  <div class="bg-zinc-900 border border-red-800 rounded-sm shadow-[0_0_40px_rgba(200,0,0,0.2)] p-8 w-full max-w-lg relative">
+
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
+
+    <h2 class="text-3xl font-bold text-center text-white mb-1 uppercase tracking-[0.3em]">
+      ShadowSOC
+    </h2>
+    <p class="text-center text-red-500 mb-8 text-xs tracking-[0.5em] uppercase">security alert</p>
+
+    @if (submitted) {
+      <div class="mb-4 p-3 bg-red-900/40 border border-red-600 text-red-300 text-center text-sm uppercase tracking-widest">
+        Alerta enviada correctamente
+      </div>
+    }
+
+    <form (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">IP Origen</label>
+          <input type="text" [(ngModel)]="alert.originIp" name="originIp" required
+                 class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors"
+                 placeholder="192.168.1.1">
+        </div>
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">IP Destino</label>
+          <input type="text" [(ngModel)]="alert.destinationIp" name="destinationIp" required
+                 class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors"
+                 placeholder="10.0.0.1">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">Puerto Origen</label>
+          <input type="number" [(ngModel)]="alert.sourcePort" name="sourcePort" required
+                 class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors">
+        </div>
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">Puerto Destino</label>
+          <input type="number" [(ngModel)]="alert.destinationPort" name="destinationPort" required
+                 class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">Tipo de Ataque</label>
+        <input type="text" [(ngModel)]="alert.typeOfAttack" name="typeOfAttack" required
+               class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors"
+               placeholder="Brute Force">
+      </div>
+
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">Severidad</label>
+          <select [(ngModel)]="alert.severity" name="severity"
+                  class="w-full p-3 border-b-2 border-zinc-700 bg-zinc-900 text-white font-mono focus:outline-none focus:border-red-600 transition-colors">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">Protocolo</label>
+          <select [(ngModel)]="alert.protocol" name="protocol"
+                  class="w-full p-3 border-b-2 border-zinc-700 bg-zinc-900 text-white font-mono focus:outline-none focus:border-red-600 transition-colors">
+            <option value="Tcp">TCP</option>
+            <option value="Udp">UDP</option>
+            <option value="Icmp">ICMP</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">MITRE ID</label>
+          <input type="text" [(ngModel)]="alert.mitreID" name="mitreID"
+                 class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors"
+                 placeholder="T1110">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">Inicio</label>
+          <input type="datetime-local" [(ngModel)]="alert.whenStarted" name="whenStarted" required
+                 class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors">
+        </div>
+        <div>
+          <label class="block text-zinc-500 font-bold mb-1 uppercase text-xs tracking-widest">Fin</label>
+          <input type="datetime-local" [(ngModel)]="alert.whenEnded" name="whenEnded" required
+                 class="w-full p-3 border-b-2 border-zinc-700 bg-transparent text-white font-mono focus:outline-none focus:border-red-600 transition-colors">
+        </div>
+      </div>
+
+      <button type="submit"
+              class="mt-4 bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 uppercase tracking-[0.3em] text-sm transition-all hover:shadow-[0_0_20px_rgba(200,0,0,0.4)] hover:tracking-[0.4em]">
+        Enviar Alerta
+      </button>
+    </form>
+
+    <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
+  </div>
+</div>
