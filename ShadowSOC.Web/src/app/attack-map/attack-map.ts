@@ -37,11 +37,11 @@ export class AttackMap implements OnInit, OnDestroy {
         this.dropRipple(pos, color);
 
         L.circleMarker(pos, {
-          radius: 4,
+          radius: 8,
           color: color,
           fillColor: color,
           fillOpacity: 0.7,
-          weight: 0,
+          weight: 1,
         })
         .bindPopup(
           `<div style="font-family: monospace; font-size: 12px; color: #ccc; background: #111; padding: 8px; border: 1px solid ${color}; border-radius: 4px;">
