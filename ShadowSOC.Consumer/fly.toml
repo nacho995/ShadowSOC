@@ -1,0 +1,13 @@
+app = 'shadowsoc-consumer'
+primary_region = 'mad'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[processes]
+  worker = 'dotnet ShadowSOC.Consumer.dll'
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

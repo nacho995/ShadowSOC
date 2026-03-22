@@ -12,8 +12,12 @@ export class Signalr {
   allAlerts: any[] = [];
 
   constructor() {
+    const apiUrl = window.location.hostname === 'localhost'
+      ? 'http://localhost:5174'
+      : 'https://shadowsoc-api.fly.dev';
+
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5174/hubs/alerts')
+      .withUrl(`${apiUrl}/hubs/alerts`)
       .withAutomaticReconnect()
       .build();
 

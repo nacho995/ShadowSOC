@@ -21,16 +21,24 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
                                                                                                                                      
-        var factory = new ConnectionFactory { HostName = "localhost" };
-        var connection = await factory.CreateConnectionAsync();                                                                         
+        var factory = new ConnectionFactory { Uri = new Uri(Environment.GetEnvironmentVariable("RABBITMQ_URL") ?? "amqp://guest:guest@localhost:5672") };
+        var connection = await factory.CreateConnectionAsync();
         var channel = await connection.CreateChannelAsync();
-        var config = new ConsumerConfig
+        var kafkaConfig = new ConsumerConfig
         {
-            BootstrapServers = "localhost:9092",
+            BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092",
             GroupId = "detection-service-v2",
-            AutoOffsetReset = AutoOffsetReset.Earliest
+            AutoOffsetReset = AutoOffsetReset.Earliest,
         };
-        var consumer = new ConsumerBuilder<string, string>(config).Build();
+        var kafkaUser = Environment.GetEnvironmentVariable("KAFKA_USERNAME");
+        if (!string.IsNullOrEmpty(kafkaUser))
+        {
+            kafkaConfig.SecurityProtocol = SecurityProtocol.SaslSsl;
+            kafkaConfig.SaslMechanism = SaslMechanism.ScramSha256;
+            kafkaConfig.SaslUsername = kafkaUser;
+            kafkaConfig.SaslPassword = Environment.GetEnvironmentVariable("KAFKA_PASSWORD");
+        }
+        var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build();
         consumer.Subscribe("security-events");
         await channel.QueueDeclareAsync(                                                                                                
             queue: "alerts",                                                                                                            

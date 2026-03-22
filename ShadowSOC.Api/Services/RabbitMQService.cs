@@ -11,7 +11,7 @@ public class RabbitMQService
 
     public RabbitMQService()
     {
-       _alerts = new ConnectionFactory() { HostName = "localhost" };
+       _alerts = new ConnectionFactory { Uri = new Uri(Environment.GetEnvironmentVariable("RABBITMQ_URL") ?? "amqp://guest:guest@localhost:5672") };
     }
     public async Task PublishAlertAsync(SecurityEvent securityEvent)
     {

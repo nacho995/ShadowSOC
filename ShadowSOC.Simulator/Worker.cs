@@ -77,8 +77,19 @@ public class Worker(ILogger<Worker> logger, IConfiguration configuration) : Back
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var apiKey = configuration["AbuseIPDB:ApiKey"];
-        var config = new ProducerConfig { BootstrapServers = "localhost:9092" };
-        var producer = new ProducerBuilder<string, string>(config).Build();
+        var kafkaConfig = new ProducerConfig
+        {
+            BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092",
+        };
+        var kafkaUser = Environment.GetEnvironmentVariable("KAFKA_USERNAME");
+        if (!string.IsNullOrEmpty(kafkaUser))
+        {
+            kafkaConfig.SecurityProtocol = SecurityProtocol.SaslSsl;
+            kafkaConfig.SaslMechanism = SaslMechanism.ScramSha256;
+            kafkaConfig.SaslUsername = kafkaUser;
+            kafkaConfig.SaslPassword = Environment.GetEnvironmentVariable("KAFKA_PASSWORD");
+        }
+        var producer = new ProducerBuilder<string, string>(kafkaConfig).Build();
 
         var http = new HttpClient();
         http.DefaultRequestHeaders.Add("Key", apiKey);

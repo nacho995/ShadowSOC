@@ -20,7 +20,7 @@ public class AlertBroadcastService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // aquí: conectar a RabbitMQ, declarar cola "alerts", escuchar
-        var factory = new ConnectionFactory { HostName = "localhost" };
+        var factory = new ConnectionFactory { Uri = new Uri(Environment.GetEnvironmentVariable("RABBITMQ_URL") ?? "amqp://guest:guest@localhost:5672") };
         var connection = await factory.CreateConnectionAsync();
         var channel = await connection.CreateChannelAsync();
         await channel.QueueDeclareAsync(queue: "alerts", durable: false, exclusive: false, autoDelete: false,
