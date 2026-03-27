@@ -77,6 +77,10 @@ public class Worker(ILogger<Worker> logger, IConfiguration configuration) : Back
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var apiKey = configuration["AbuseIPDB:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException("Missing required configuration: AbuseIPDB:ApiKey. Configure it with: dotnet user-secrets set \"AbuseIPDB:ApiKey\"      \"<your-key>\" --project ShadowSOC.Simulator"         );
+        }
         var kafkaConfig = new ProducerConfig
         {
             BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092",

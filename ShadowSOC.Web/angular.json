@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "OrderSystem.Web": {
+    "ShadowSOC.Web": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -57,10 +57,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "OrderSystem.Web:build:production"
+              "buildTarget": "ShadowSOC.Web:build:production"
             },
             "development": {
-              "buildTarget": "OrderSystem.Web:build:development"
+              "buildTarget": "ShadowSOC.Web:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-OrderSystem.Consumer-b07b94cc-cf04-44d9-af5f-becf86400da7</UserSecretsId>
+    <UserSecretsId>dotnet-ShadowSOC.Consumer-b07b94cc-cf04-44d9-af5f-becf86400da7</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

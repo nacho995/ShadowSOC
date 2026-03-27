@@ -1,5 +1,5 @@
 {
-  "name": "order-system.web",
+  "name": "shadowsoc-web",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",

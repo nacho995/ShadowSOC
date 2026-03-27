@@ -12,7 +12,9 @@ public class Worker : BackgroundService
     private readonly ILogger<Worker> _logger;
     private readonly HttpClient _http = new();
     private readonly Dictionary<string, (double lat, double lon, string country)> _geoCache = new();
-
+    private IConnection _connection;
+    private IChannel _channel;
+    private IConsumer<string, string>? _kafkaConsumer;
     public Worker(ILogger<Worker> logger)
     {
         _logger = logger;
@@ -22,8 +24,9 @@ public class Worker : BackgroundService
     {
                                                                                                                                      
         var factory = new ConnectionFactory { Uri = new Uri(Environment.GetEnvironmentVariable("RABBITMQ_URL") ?? "amqp://guest:guest@localhost:5672") };
-        var connection = await factory.CreateConnectionAsync();
-        var channel = await connection.CreateChannelAsync();
+        _connection = await factory.CreateConnectionAsync();
+        _channel = await _connection.CreateChannelAsync();
+       
         var kafkaConfig = new ConsumerConfig
         {
             BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? "localhost:9092",
@@ -38,9 +41,9 @@ public class Worker : BackgroundService
             kafkaConfig.SaslUsername = kafkaUser;
             kafkaConfig.SaslPassword = Environment.GetEnvironmentVariable("KAFKA_PASSWORD");
         }
-        var consumer = new ConsumerBuilder<string, string>(kafkaConfig).Build();
-        consumer.Subscribe("security-events");
-        await channel.QueueDeclareAsync(                                                                                                
+        _kafkaConsumer = new ConsumerBuilder<string, string>(kafkaConfig).Build();
+        _kafkaConsumer.Subscribe("security-events");
+        await _channel.QueueDeclareAsync(                                                                                                
             queue: "alerts",                                                                                                            
             durable: false,                                                                                                             
             exclusive: false,                                                                                                           
@@ -50,23 +53,27 @@ public class Worker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            // leer de kafka
-            var result = consumer.Consume(stoppingToken);
+            var result = _kafkaConsumer.Consume(stoppingToken);
             var securityEvent = JsonSerializer.Deserialize<SecurityEvent>(result.Message.Value);
-
             if (securityEvent.Severity >= Severity.High || securityEvent.DestinationPort == 22)
             {
-                //publicar en rabbitmq
                 await GeolocateAsync(securityEvent);
                 var json = JsonSerializer.Serialize(securityEvent);
                 var body = Encoding.UTF8.GetBytes(json);
-                await channel.BasicPublishAsync( "", "alerts", false, new BasicProperties(), body);
+                await _channel.BasicPublishAsync( "", "alerts", false, new BasicProperties(), body);
                 _logger.LogInformation("ALERTA: {attack} desde {ip} ({country})", securityEvent.TypeOfAttack, securityEvent.OriginIp, securityEvent.Country);
             }
         }
-
+ 
 
     }
+    public override async Task StopAsync(CancellationToken cancellationToken)                                  
+    {
+        _kafkaConsumer?.Close();                                                                               
+        await (_channel?.CloseAsync() ?? Task.CompletedTask);
+        await (_connection?.CloseAsync() ?? Task.CompletedTask);                                               
+        await base.StopAsync(cancellationToken);
+    }    
 
     private async Task GeolocateAsync(SecurityEvent securityEvent)
     {

@@ -6,15 +6,15 @@ namespace ShadowSOC.Api.Controllers;
 
 [ApiController]
 [Route("api/alerts")]
-public class AlertControler : ControllerBase
+public class AlertController : ControllerBase
 {
     private RabbitMQService RabbitMq;
 
-    public AlertControler(RabbitMQService rabbitMq)
+    public AlertController(RabbitMQService rabbitMq)
     {
         RabbitMq = rabbitMq;
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> PublishAlertAsync([FromBody] SecurityEvent securityEvent)
     {
@@ -23,9 +23,7 @@ public class AlertControler : ControllerBase
             return BadRequest();
         }
         securityEvent.Id = Guid.NewGuid();
-        await RabbitMq.PublishAlertAsync(securityEvent); 
+        await RabbitMq.PublishAlertAsync(securityEvent);
         return Ok();
-        
     }
-
 }
