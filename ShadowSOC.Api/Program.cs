@@ -22,7 +22,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(policy => policy
-    .SetIsOriginAllowed(_ => true)
+    .WithOrigins("http://localhost:4200", "https://shadowsoc-web.fly.dev")
     .AllowCredentials()
     .AllowAnyMethod()
     .AllowAnyHeader()

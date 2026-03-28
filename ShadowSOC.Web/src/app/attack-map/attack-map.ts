@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Signalr } from '../signalr';
 import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
+import { Alert, Severity } from '../models/alert.model';
 
 @Component({
   selector: 'app-attack-map',
@@ -29,7 +30,7 @@ export class AttackMap implements OnInit, OnDestroy {
       noWrap: false,
     }).addTo(this.map);
 
-    this.subscription = this.signalrService.alerts$.subscribe((alert) => {
+    this.subscription = this.signalrService.alerts$.subscribe((alert: Alert) => {
       if (alert.Latitude != null && alert.Longitude != null && (alert.Latitude !== 0 || alert.Longitude !== 0)) {
         const color = this.getColor(alert.Severity);
         const pos: L.LatLngExpression = [alert.Latitude, alert.Longitude];
@@ -93,7 +94,7 @@ export class AttackMap implements OnInit, OnDestroy {
     }
   }
 
-  private getColor(severity: string): string {
+  private getColor(severity: Severity): string {
     switch (severity) {
       case 'Critical': return '#ff0000';
       case 'High': return '#ff4400';
@@ -103,6 +104,7 @@ export class AttackMap implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.map.remove();
     this.subscription.unsubscribe();
   }
 }

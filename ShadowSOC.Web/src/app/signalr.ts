@@ -1,6 +1,7 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { Subject } from 'rxjs';
+import { Alert } from './models/alert.model';
 
 @Injectable({
   providedIn: 'root',
@@ -8,8 +9,8 @@ import { Subject } from 'rxjs';
 export class Signalr {
   private connection: signalR.HubConnection;
   private ngZone = inject(NgZone);
-  alerts$ = new Subject<any>();
-  allAlerts: any[] = [];
+  alerts$ = new Subject<Alert>();
+  allAlerts: Alert[] = [];
 
   constructor() {
     const apiUrl = window.location.hostname === 'localhost'
@@ -23,7 +24,7 @@ export class Signalr {
 
     this.connection.on('NewAlert', (message: string) => {
       this.ngZone.run(() => {
-        const alert = JSON.parse(message);
+        const alert = JSON.parse(message) as Alert;
         alert.Timestamp = new Date();
         this.allAlerts.unshift(alert);
         if (this.allAlerts.length > 200) this.allAlerts.pop();

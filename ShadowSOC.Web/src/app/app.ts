@@ -3,6 +3,7 @@ import { AttackMap } from './attack-map/attack-map';
 import { Signalr } from './signalr';
 import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { Alert} from './models/alert.model';
 
 @Component({
   selector: 'app-root',
