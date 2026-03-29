@@ -14,6 +14,8 @@ public class AlertBroadcastService : BackgroundService
     private readonly ILogger<AlertBroadcastService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly string _aiAgentUrl;
+    private DateTime _lastAnalysis = DateTime.MinValue;
+    private static readonly TimeSpan AnalysisCooldown = TimeSpan.FromSeconds(30);
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
@@ -47,7 +49,11 @@ public class AlertBroadcastService : BackgroundService
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
             _logger.LogInformation("Broadcasting alert via SignalR");
             await _hubContext.Clients.All.SendAsync("NewAlert", message, stoppingToken);
-            _ = AnalyzeAlertAsync(message, stoppingToken);
+            if (DateTime.UtcNow - _lastAnalysis >= AnalysisCooldown)
+            {
+                _lastAnalysis = DateTime.UtcNow;
+                _ = AnalyzeAlertAsync(message, stoppingToken);
+            }
         };
         await _channel.BasicConsumeAsync(queue: "alerts", autoAck: true, consumer: consumer);
         await Task.Delay(Timeout.Infinite, stoppingToken);

@@ -12,6 +12,7 @@ export class Signalr {
   alerts$ = new Subject<Alert>();
   analysis$ = new Subject<ThreatAnalysis>();
   allAlerts: Alert[] = [];
+  allAnalyses: ThreatAnalysis[] = [];
 
   constructor() {
     const apiUrl = window.location.hostname === 'localhost'
@@ -34,9 +35,17 @@ export class Signalr {
     });
 
     this.connection.on('NewAnalysis', (message: string) => {
+      console.log('RAW NewAnalysis:', message, typeof message);
       this.ngZone.run(() => {
-        const analysis = JSON.parse(message) as ThreatAnalysis;
-        this.analysis$.next(analysis);
+        try {
+          const parsed = typeof message === 'string' ? JSON.parse(message) : message;
+          const analysis = (typeof parsed === 'string' ? JSON.parse(parsed) : parsed) as ThreatAnalysis;
+          this.allAnalyses.unshift(analysis);
+          if (this.allAnalyses.length > 50) this.allAnalyses.pop();
+          this.analysis$.next(analysis);
+        } catch (e) {
+          console.error('Failed to parse analysis:', e);
+        }
       });
     });
 
