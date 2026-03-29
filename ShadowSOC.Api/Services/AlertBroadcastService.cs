@@ -12,6 +12,8 @@ public class AlertBroadcastService : BackgroundService
     private IChannel? _channel;
     private readonly IHubContext<AlertHub> _hubContext;
     private readonly ILogger<AlertBroadcastService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly string _aiAgentUrl;
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
@@ -19,10 +21,17 @@ public class AlertBroadcastService : BackgroundService
         await (_connection?.CloseAsync() ?? Task.CompletedTask);
         await base.StopAsync(cancellationToken);
     }
-    public AlertBroadcastService(IHubContext<AlertHub> hubContext, ILogger<AlertBroadcastService> logger)
+
+    public AlertBroadcastService(
+        IHubContext<AlertHub> hubContext,
+        ILogger<AlertBroadcastService> logger,
+        IHttpClientFactory httpClientFactory,
+        IConfiguration configuration)
     {
         _hubContext = hubContext;
         _logger = logger;
+        _httpClientFactory = httpClientFactory;
+        _aiAgentUrl = configuration["AiAgent:Url"] ?? "http://localhost:8000";
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,8 +47,35 @@ public class AlertBroadcastService : BackgroundService
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
             _logger.LogInformation("Broadcasting alert via SignalR");
             await _hubContext.Clients.All.SendAsync("NewAlert", message, stoppingToken);
+            _ = AnalyzeAlertAsync(message, stoppingToken);
         };
         await _channel.BasicConsumeAsync(queue: "alerts", autoAck: true, consumer: consumer);
         await Task.Delay(Timeout.Infinite, stoppingToken);
+    }
+
+    private async Task AnalyzeAlertAsync(string alertMessage, CancellationToken ct)
+    {
+        try
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(30);
+            var response = await client.PostAsJsonAsync($"{_aiAgentUrl}/analyze", new { alert = alertMessage }, ct);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadAsStringAsync(ct);
+            await _hubContext.Clients.All.SendAsync("NewAnalysis", result, ct);
+            _logger.LogInformation("AI analysis completed for alert");
+        }
+        catch (TaskCanceledException)
+        {
+            _logger.LogWarning("AI analysis timed out");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning("AI agent unreachable: {Error}", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("AI analysis failed: {Error}", ex.Message);
+        }
     }
 }

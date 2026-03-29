@@ -18,3 +18,10 @@ export interface Alert {
   Country?: string;
   Timestamp?: Date;
 }
+export interface ThreatAnalysis {
+  risk_level: string;
+  summary: string;
+  mitre_explanation: string;
+  recommendation: string;
+}
+

@@ -7,9 +7,9 @@ namespace ShadowSOC.Api.Services;
 
 public class RabbitMQService : IAsyncDisposable
 {
-    private IConnection _connection;
-    private ConnectionFactory _alerts;
-    private IChannel _channel;
+    private IConnection? _connection;
+    private readonly ConnectionFactory _alerts;
+    private IChannel? _channel;
     public async ValueTask DisposeAsync()
     {
         await (_channel?.CloseAsync() ?? Task.CompletedTask);

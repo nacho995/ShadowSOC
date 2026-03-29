@@ -12,8 +12,8 @@ public class Worker : BackgroundService
     private readonly ILogger<Worker> _logger;
     private readonly HttpClient _http = new();
     private readonly Dictionary<string, (double lat, double lon, string country)> _geoCache = new();
-    private IConnection _connection;
-    private IChannel _channel;
+    private IConnection? _connection;
+    private IChannel? _channel;
     private IConsumer<string, string>? _kafkaConsumer;
     public Worker(ILogger<Worker> logger)
     {
@@ -55,6 +55,7 @@ public class Worker : BackgroundService
         {
             var result = _kafkaConsumer.Consume(stoppingToken);
             var securityEvent = JsonSerializer.Deserialize<SecurityEvent>(result.Message.Value);
+            if (securityEvent is null) continue;
             if (securityEvent.Severity >= Severity.High || securityEvent.DestinationPort == 22)
             {
                 await GeolocateAsync(securityEvent);

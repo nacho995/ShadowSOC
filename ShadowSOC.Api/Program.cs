@@ -10,7 +10,7 @@ builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddCors();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<AlertBroadcastService>();
-
+builder.Services.AddHttpClient();
 var app = builder.Build();
 
 app.MapHub<AlertHub>("/hubs/alerts");

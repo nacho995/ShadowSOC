@@ -1,7 +1,7 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { Subject } from 'rxjs';
-import { Alert } from './models/alert.model';
+import { Alert, ThreatAnalysis } from './models/alert.model';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +10,7 @@ export class Signalr {
   private connection: signalR.HubConnection;
   private ngZone = inject(NgZone);
   alerts$ = new Subject<Alert>();
+  analysis$ = new Subject<ThreatAnalysis>();
   allAlerts: Alert[] = [];
 
   constructor() {
@@ -29,9 +30,16 @@ export class Signalr {
         this.allAlerts.unshift(alert);
         if (this.allAlerts.length > 200) this.allAlerts.pop();
         this.alerts$.next(alert);
-        console.log('Alert received:', alert.TypeOfAttack, alert.OriginIp);
       });
     });
+
+    this.connection.on('NewAnalysis', (message: string) => {
+      this.ngZone.run(() => {
+        const analysis = JSON.parse(message) as ThreatAnalysis;
+        this.analysis$.next(analysis);
+      });
+    });
+
 
     this.connection.start()
       .then(() => console.log('SignalR connected'))

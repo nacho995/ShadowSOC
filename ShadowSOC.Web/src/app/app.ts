@@ -3,7 +3,7 @@ import { AttackMap } from './attack-map/attack-map';
 import { Signalr } from './signalr';
 import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { Alert} from './models/alert.model';
+import { Alert, ThreatAnalysis } from './models/alert.model';
 
 @Component({
   selector: 'app-root',
@@ -14,16 +14,32 @@ import { Alert} from './models/alert.model';
 export class App implements OnInit, OnDestroy {
   signalrService = inject(Signalr);
   private cdr = inject(ChangeDetectorRef);
-  private subscription!: Subscription;
+  private alertSub!: Subscription;
+  private analysisSub!: Subscription;
+
+  latestAnalysis: ThreatAnalysis | null = null;
+  analysisVisible = false;
 
   ngOnInit() {
-    this.subscription = this.signalrService.alerts$.subscribe(() => {
+    this.alertSub = this.signalrService.alerts$.subscribe(() => {
+      this.cdr.detectChanges();
+    });
+
+    this.analysisSub = this.signalrService.analysis$.subscribe((analysis) => {
+      this.latestAnalysis = analysis;
+      this.analysisVisible = true;
       this.cdr.detectChanges();
     });
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this.alertSub.unsubscribe();
+    this.analysisSub.unsubscribe();
+  }
+
+  dismissAnalysis() {
+    this.analysisVisible = false;
+    this.cdr.detectChanges();
   }
 
   get totalAttacks(): number {

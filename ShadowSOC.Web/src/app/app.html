@@ -3,7 +3,7 @@
   <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #000; border-bottom: 1px solid rgba(127,29,29,0.5); flex-shrink: 0; z-index: 1000; position: relative;">
     <div style="display: flex; align-items: center; gap: 16px;">
       <h1 style="font-size: 1.5rem; font-weight: bold; letter-spacing: 0.3em; color: #ef4444; text-transform: uppercase; margin: 0;">ShadowSOC</h1>
-      <span style="font-size: 10px; letter-spacing: 0.3em; color: #555; text-transform: uppercase;">Run Rabbit Run</span>
+      <span style="font-size: 10px; letter-spacing: 0.3em; color: #555; text-transform: uppercase;">AI-Powered SOC</span>
     </div>
     <div style="display: flex; align-items: center; gap: 24px; font-size: 14px;">
       <div style="display: flex; align-items: center; gap: 8px;">
@@ -24,6 +24,44 @@
     <!-- MAP AREA -->
     <div style="width: 70%; position: relative;">
       <app-attack-map style="display: block; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></app-attack-map>
+
+      <!-- AI ANALYSIS OVERLAY -->
+      @if (analysisVisible && latestAnalysis) {
+        <div class="analysis-overlay">
+          <div class="analysis-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: #8b5cf6; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;">AI Analysis</span>
+                <span class="ai-dot"></span>
+              </div>
+              <button (click)="dismissAnalysis()" style="background: none; border: 1px solid #333; color: #666; cursor: pointer; font-family: monospace; font-size: 10px; padding: 2px 8px; text-transform: uppercase;">&times;</button>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <span style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">Risk Level</span>
+              <div style="font-size: 14px; font-weight: bold; margin-top: 2px;"
+                   [style.color]="latestAnalysis.risk_level === 'Critical' ? '#ef4444' : latestAnalysis.risk_level === 'High' ? '#f97316' : latestAnalysis.risk_level === 'Medium' ? '#eab308' : '#4ade80'">
+                {{ latestAnalysis.risk_level }}
+              </div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <span style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">Summary</span>
+              <div style="font-size: 12px; color: #d1d5db; margin-top: 2px; line-height: 1.5;">{{ latestAnalysis.summary }}</div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <span style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">MITRE ATT&amp;CK</span>
+              <div style="font-size: 12px; color: #c4b5fd; margin-top: 2px; line-height: 1.5;">{{ latestAnalysis.mitre_explanation }}</div>
+            </div>
+
+            <div>
+              <span style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">Recommendation</span>
+              <div style="font-size: 12px; color: #86efac; margin-top: 2px; line-height: 1.5;">{{ latestAnalysis.recommendation }}</div>
+            </div>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- TERMINAL FEED -->
