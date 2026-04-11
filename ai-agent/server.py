@@ -11,14 +11,18 @@ class AlertRequest(BaseModel):
     alert: str
 
 
-@app.post("/analyze")
+@app.post("/analyze")                                                                                                                                              
 def analyze_alert(request: AlertRequest):
-    try:
+    try:                                                                                                                                                           
         result = run_agent(request.alert)
-        return result.model_dump()
-    except Exception as e:
-        logging.error("Agent failed: %s", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        return result.model_dump()                                                                                                                                 
+    except Exception as e:                                   
+        logging.error("Agent failed: %s", e, exc_info=True)
+        raise HTTPException(              
+            status_code=500,                                
+            detail="Internal server error"                   
+        )                                                                                                                                                          
+                
 
 
 @app.get("/health")
